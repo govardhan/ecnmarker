@@ -37,6 +37,19 @@ void handle_ipv4_packet(void *data, void *data_end)
 	bpf_printk("IPv4 protocol: %u\n", ipproto);
 }
 
+void handle_ipv6_packet(void *data, void *data_end)
+{
+	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
+		bpf_printk("IPv6 packet shorter than ipv6hdr, aborting\n");
+		return;
+	}
+
+	struct ipv6hdr *iph = data + sizeof(struct ethhdr);
+	uint8_t ipproto = iph->nexthdr;
+
+	bpf_printk("IPv6 protocol: %u\n", ipproto);
+}
+
 SEC("tc")
 int ecnmarker(struct __sk_buff *skb)
 {
@@ -62,6 +75,9 @@ int ecnmarker(struct __sk_buff *skb)
 	switch (ethertype) {
 		case bpf_htons(0x0800):	/* ETH_P_IP */
 			handle_ipv4_packet(data, data_end);
+			break;
+		case bpf_htons(0x86dd):	/* ETH_P_IPV6 */
+			handle_ipv6_packet(data, data_end);
 			break;
 		default:
 			break;
