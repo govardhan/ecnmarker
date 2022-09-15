@@ -1,5 +1,6 @@
 #include "vmlinux.h"
 
+#include <bpf/bpf_endian.h>
 #include <bpf/bpf_helpers.h>
 
 struct {
@@ -21,6 +22,19 @@ uint8_t enabled(void)
 		return *enabled;
 	else
 		return false;
+}
+
+void handle_ipv4_packet(void *data, void *data_end)
+{
+	if (data + sizeof(struct ethhdr) + sizeof(struct iphdr) > data_end) {
+		bpf_printk("IPv4 packet shorter than iphdr, aborting\n");
+		return;
+	}
+
+	struct iphdr *iph = data + sizeof(struct ethhdr);
+	uint8_t ipproto = iph->protocol;
+
+	bpf_printk("IPv4 protocol: %u\n", ipproto);
 }
 
 SEC("tc")
@@ -46,6 +60,9 @@ int ecnmarker(struct __sk_buff *skb)
 	ethertype = eth->h_proto;
 
 	switch (ethertype) {
+		case bpf_htons(0x0800):	/* ETH_P_IP */
+			handle_ipv4_packet(data, data_end);
+			break;
 		default:
 			break;
 	}
