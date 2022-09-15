@@ -24,9 +24,17 @@ uint8_t enabled(void)
 		return false;
 }
 
+bool check_data(void *data, void *data_end, size_t offset)
+{
+	if (data + offset > data_end)
+		return 1;
+
+	return 0;
+}
+
 void handle_ipv4_packet(void *data, void *data_end)
 {
-	if (data + sizeof(struct ethhdr) + sizeof(struct iphdr) > data_end) {
+	if (check_data(data, data_end, sizeof(struct ethhdr) + sizeof(struct iphdr))) {
 		bpf_printk("IPv4 packet shorter than iphdr, aborting\n");
 		return;
 	}
@@ -39,7 +47,7 @@ void handle_ipv4_packet(void *data, void *data_end)
 
 void handle_ipv6_packet(void *data, void *data_end)
 {
-	if (data + sizeof(struct ethhdr) + sizeof(struct ipv6hdr) > data_end) {
+	if (check_data(data, data_end, sizeof(struct ethhdr) + sizeof(struct ipv6hdr))) {
 		bpf_printk("IPv6 packet shorter than ipv6hdr, aborting\n");
 		return;
 	}
@@ -64,7 +72,7 @@ int ecnmarker(struct __sk_buff *skb)
 	void *data = (void *)(long)skb->data;
 	void *data_end = (void *)(long)skb->data_end;
 
-	if (data + sizeof(struct ethhdr) > data_end) {
+	if (check_data(data, data_end, sizeof(struct ethhdr))) {
 		bpf_printk("Frame shorter than ethhdr, aborting\n");
 		goto out;
 	}
