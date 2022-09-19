@@ -11,7 +11,7 @@ struct {
 	__uint(max_entries, 1);
 } ecnmarker_enabled SEC(".maps");
 
-uint8_t enabled(void)
+static uint8_t enabled(void)
 {
 	uint8_t *enabled;
 	uint32_t key = 0;
@@ -24,7 +24,7 @@ uint8_t enabled(void)
 		return false;
 }
 
-bool check_data(void *data, void *data_end, size_t offset)
+static bool check_data(void *data, void *data_end, size_t offset)
 {
 	if (data + offset > data_end)
 		return 1;
@@ -32,7 +32,7 @@ bool check_data(void *data, void *data_end, size_t offset)
 	return 0;
 }
 
-void tcp_mark_ecn(struct __sk_buff *skb, bool ipv6)
+static void tcp_mark_ecn(struct __sk_buff *skb, bool ipv6)
 {
 	void *data = (void *)(long)skb->data;
 	void *data_end = (void *)(long)skb->data_end;
@@ -46,7 +46,7 @@ void tcp_mark_ecn(struct __sk_buff *skb, bool ipv6)
 	tcph->ece = 1;
 }
 
-void handle_ipv4_packet(struct __sk_buff *skb)
+static void handle_ipv4_packet(struct __sk_buff *skb)
 {
 	void *data = (void *)(long)skb->data;
 	void *data_end = (void *)(long)skb->data_end;
@@ -65,7 +65,7 @@ void handle_ipv4_packet(struct __sk_buff *skb)
 		tcp_mark_ecn(skb, false);
 }
 
-void handle_ipv6_packet(struct __sk_buff *skb)
+static void handle_ipv6_packet(struct __sk_buff *skb)
 {
 	void *data = (void *)(long)skb->data;
 	void *data_end = (void *)(long)skb->data_end;
