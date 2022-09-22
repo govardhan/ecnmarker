@@ -20,5 +20,6 @@ endif()
 # this requires a kernel with CONFIG_DEBUG_INFO_BTF enabled
 execute_process(COMMAND bpftool btf dump file /sys/kernel/btf/vmlinux format c OUTPUT_FILE vmlinux.h)
 
+add_compile_definitions(BPF_CORE)
 add_executable(ecnmarker-bpf.o ecnmarker-bpf.c)
 install(TARGETS ecnmarker-bpf.o RUNTIME DESTINATION /lib/ecnmarker)

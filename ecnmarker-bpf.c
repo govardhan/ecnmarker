@@ -1,4 +1,11 @@
+#ifdef BPF_CORE
 #include "vmlinux.h"
+#else
+#include <uapi/linux/bpf.h>
+#include <uapi/linux/if_ether.h>
+#include <uapi/linux/ip.h>
+#include <uapi/linux/ipv6.h>
+#endif
 
 #include <bpf/bpf_endian.h>
 #include <bpf/bpf_helpers.h>
