@@ -13,6 +13,8 @@ let bpf_enabled = false;
 let time_enable = 5000;
 let time_disable = 60000;
 
+let ecnmarker_state = [];
+
 function stop_service()
 {
 	let ubus = connect();
@@ -41,6 +43,8 @@ function attach_bpf(iface, dir) {
 		ulog_err('failed to setup tc filter on interface %s: %d\n', iface, ret);
 		stop_service();
 	}
+
+	push(ecnmarker_state, { 'iface': iface, 'dir': dir });
 }
 
 function toggle_ecnmarker_bpf() {
