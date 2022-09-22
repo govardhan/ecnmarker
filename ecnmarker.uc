@@ -101,4 +101,12 @@ global.start = function() {
 
 global.stop = function() {
 	ulog_info('stopping\n');
+
+	for (let s in ecnmarker_state) {
+		let cmd = prepare_filter_cmd(s.iface, s.dir, true);
+		let ret = system(cmd);
+		if (ret) {
+			ulog_err("failed to remove tc filter on interface %s (%s): %d\n", s.iface, s.dir, ret);
+		}
+	}
 };
