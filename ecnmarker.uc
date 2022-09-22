@@ -19,6 +19,12 @@ function stop_service()
 	ubus.call('service', 'delete', { name: id });
 }
 
+function prepare_filter_cmd(iface, dir, del) {
+	let cmd = [ 'tc', 'filter', del ? 'del' : 'add', 'dev', iface, dir, 'prio', 0x100, 'bpf', 'object-file', '/lib/ecnmarker/ecnmarker-bpf.o', 'sec', 'tc', 'verbose', 'direct-action' ];
+
+	return cmd;
+}
+
 function attach_bpf(iface, dir) {
 	ulog_info('attaching ecnmarker bpf program to %s (%s)\n', iface, dir);
 
@@ -29,7 +35,7 @@ function attach_bpf(iface, dir) {
 		stop_service();
 	}
 
-	cmd = [ 'tc', 'filter', 'replace', 'dev', iface, dir, 'prio', 0x100, 'bpf', 'object-file', '/lib/ecnmarker/ecnmarker-bpf.o', 'sec', 'tc', 'verbose', 'direct-action' ];
+	cmd = prepare_filter_cmd(iface, dir, false);
 	ret = system(cmd);
 	if (ret) {
 		ulog_err('failed to setup tc filter on interface %s: %d\n', iface, ret);
