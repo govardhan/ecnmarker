@@ -32,20 +32,6 @@ static bool check_data(void *data, void *data_end, size_t offset)
 	return 0;
 }
 
-static void tcp_mark_ecn(struct __sk_buff *skb, bool ipv6)
-{
-	void *data = (void *)(long)skb->data;
-	void *data_end = (void *)(long)skb->data_end;
-
-	if (check_data(data, data_end, sizeof(struct ethhdr) + (ipv6 ? sizeof(struct ipv6hdr) : sizeof(struct iphdr)) + sizeof(struct tcphdr))) {
-		bpf_printk("TCP packet shorter than tcphdr, aborting\n");
-		return;
-	}
-
-	struct tcphdr *tcph = data + sizeof(struct ethhdr) + (ipv6 ? sizeof(struct ipv6hdr) : sizeof(struct iphdr));
-	tcph->ece = 1;
-}
-
 static void handle_ipv4_packet(struct __sk_buff *skb)
 {
 	void *data = (void *)(long)skb->data;
@@ -61,8 +47,10 @@ static void handle_ipv4_packet(struct __sk_buff *skb)
 
 	bpf_printk("IPv4 protocol: %u\n", ipproto);
 
-	if (ipproto == 6)
-		tcp_mark_ecn(skb, false);
+	uint8_t tos_old = iph->tos;
+	iph->tos |= 0x03;
+
+	bpf_l3_csum_replace(skb, sizeof(struct ethhdr) + offsetof(struct iphdr, check), bpf_htons(tos_old), bpf_htons(iph->tos), 2);
 }
 
 static void handle_ipv6_packet(struct __sk_buff *skb)
@@ -79,9 +67,6 @@ static void handle_ipv6_packet(struct __sk_buff *skb)
 	uint8_t ipproto = iph->nexthdr;
 
 	bpf_printk("IPv6 protocol: %u\n", ipproto);
-
-	if (ipproto == 6)
-		tcp_mark_ecn(skb, true);
 }
 
 SEC("tc")
