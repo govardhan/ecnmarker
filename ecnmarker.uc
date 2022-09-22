@@ -10,6 +10,9 @@ const id = 'ecnmarker';
 // TODO: get state from map
 let bpf_enabled = false;
 
+let time_enable = 5000;
+let time_disable = 60000;
+
 function stop_service()
 {
 	let ubus = connect();
@@ -40,11 +43,11 @@ function toggle_ecnmarker_bpf() {
 
 	if (bpf_enabled) {
 		cmd = [ 'bpftool', 'map', 'update', 'name', 'ecnmarker_enabl', 'key', 0, 0, 0, 0, 'value', 0 ];
-		timeout = 60000;
+		timeout = time_disable;
 		ulog_info('ECN-CE marking enabled, disabling for %d ms\n', timeout);
 	} else {
 		cmd = [ 'bpftool', 'map', 'update', 'name', 'ecnmarker_enabl', 'key', 0, 0, 0, 0, 'value', 1 ];
-		timeout = 200;
+		timeout = time_enable;
 		ulog_info('ECN-CE marking disabled, enabling for %d ms\n', timeout);
 	}
 
@@ -72,6 +75,9 @@ global.start = function() {
 
 	let uci = cursor();
 	uci.load(id);
+
+	time_enable = +uci.get(id, "main", "time_enable_ms") || time_enable;
+	time_disable = +uci.get(id, "main", "time_disable_ms") || time_disable;
 
 	uci.foreach(id, 'interface', (s) => {
 		if (s.disabled != '1') {

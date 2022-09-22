@@ -1,3 +1,7 @@
+config ecnmarker main
+	option time_disable_ms '60000'
+	option time_enable_ms '5000'
+
 config interface
 	option disabled '1'
 	option interface 'eth0'
