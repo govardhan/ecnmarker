@@ -35,6 +35,7 @@ function attach_bpf(iface, dir) {
 	if (ret) {
 		ulog_err('failed to setup clsact qdisc on interface %s: %d\n', iface, ret);
 		stop_service();
+		return;
 	}
 
 	cmd = prepare_filter_cmd(iface, dir, false);
@@ -42,6 +43,7 @@ function attach_bpf(iface, dir) {
 	if (ret) {
 		ulog_err('failed to setup tc filter on interface %s: %d\n', iface, ret);
 		stop_service();
+		return;
 	}
 
 	push(ecnmarker_state, { 'iface': iface, 'dir': dir });
