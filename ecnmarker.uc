@@ -34,7 +34,6 @@ function attach_bpf(iface, dir) {
 	let ret = system(cmd);
 	if (ret) {
 		ulog_err('failed to setup clsact qdisc on interface %s: %d\n', iface, ret);
-		stop_service();
 		return;
 	}
 
@@ -42,7 +41,6 @@ function attach_bpf(iface, dir) {
 	ret = system(cmd);
 	if (ret) {
 		ulog_err('failed to setup tc filter on interface %s: %d\n', iface, ret);
-		stop_service();
 		return;
 	}
 
@@ -99,7 +97,11 @@ global.start = function() {
 		}
 	});
 
-	uloop_timeout(cb_timeout, 1000, { private: 'data' });
+	if (length(ecnmarker_state) > 0) {
+		uloop_timeout(cb_timeout, 1000, { private: 'data' });
+	} else {
+		stop_service();
+	}
 
 };
 
