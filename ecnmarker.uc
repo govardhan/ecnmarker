@@ -51,16 +51,17 @@ function attach_bpf(iface, dir) {
 
 function toggle_ecnmarker_bpf() {
 	let cmd = '';
+	let msg = '';
 	let timeout = 1000;
 
 	if (bpf_enabled) {
 		cmd = [ 'bpftool', 'map', 'update', 'name', 'ecnmarker_enabl', 'key', 0, 0, 0, 0, 'value', 0 ];
 		timeout = time_disable;
-		ulog_info('ECN-CE marking enabled, disabling for %d ms\n', timeout);
+		msg = sprintf('disabled ECN-CE marking for %d ms\n', timeout);
 	} else {
 		cmd = [ 'bpftool', 'map', 'update', 'name', 'ecnmarker_enabl', 'key', 0, 0, 0, 0, 'value', 1 ];
 		timeout = time_enable;
-		ulog_info('ECN-CE marking disabled, enabling for %d ms\n', timeout);
+		msg = sprintf('enabled ECN-CE marking for %d ms\n', timeout);
 	}
 
 	let ret = system(cmd);
@@ -68,6 +69,7 @@ function toggle_ecnmarker_bpf() {
 		timeout = 1000;
 	} else {
 		bpf_enabled = !bpf_enabled;
+		ulog_info(msg);
 	}
 
 	return timeout;
