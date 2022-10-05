@@ -15,9 +15,19 @@ let time_disable = 60000;
 
 let ecnmarker_state = [];
 
+let ubus = connect();
+
+const EcnmarkerUbusProcedures = {
+	get_state: {
+		call: function(req) {
+			let interfaces = ecnmarker_state;
+			return req.reply({ interfaces });
+		}
+	}
+};
+
 function stop_service()
 {
-	let ubus = connect();
 	ubus.call('service', 'delete', { name: id });
 }
 
@@ -84,6 +94,8 @@ global.ulog = {
 
 global.start = function() {
 	ulog_info('starting\n');
+
+	ubus.publish(id, EcnmarkerUbusProcedures);
 
 	let uci = cursor();
 	uci.load(id);
