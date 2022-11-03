@@ -8,6 +8,6 @@ config interface
 	option direction 'egress'
 
 config interface
-	option disabled '0'
+	option disabled '1'
 	option interface 'wlan1'
 	option direction 'ingress'
