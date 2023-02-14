@@ -21,6 +21,10 @@ start_service() {
 	procd_open_instance
 	procd_set_param command "$PROG"
 	config_foreach get_netdevs interface
+	test -n "$netdevs" || {
+		echo "No interfaces enabled. Not starting ecnmarker."
+		exit 1
+	}
 	for i in $netdevs; do
 		procd_append_param netdev "$i"
 	done
